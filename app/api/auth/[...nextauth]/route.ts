@@ -1,9 +1,9 @@
-import NextAuth from 'next-auth'
+import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { compare } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -23,12 +23,14 @@ const handler = NextAuth({
         })
 
         if (!user) {
+          console.log('Usuario no encontrado:', credentials.email)
           throw new Error('Usuario no encontrado')
         }
 
         const isPasswordValid = await compare(credentials.password, user.password)
 
         if (!isPasswordValid) {
+          console.log('Contraseña incorrecta para usuario:', credentials.email)
           throw new Error('Contraseña incorrecta')
         }
 
@@ -44,9 +46,27 @@ const handler = NextAuth({
     signIn: '/login',
   },
   session: {
-    strategy: 'jwt'
-  }
-})
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 días
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+      }
+      return session
+    }
+  },
+  debug: process.env.NODE_ENV === 'development',
+}
+
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
 

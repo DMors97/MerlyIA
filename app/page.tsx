@@ -10,8 +10,6 @@ export default async function Home() {
     redirect("/chat")
   }
 
-  // Este return nunca se ejecutará debido a las redirecciones anteriores,
-  // pero es necesario para satisfacer el tipo de retorno de la función
   return null
 }
 

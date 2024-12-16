@@ -35,6 +35,13 @@ export default function ChatPage() {
     }
   }, [status, router])
 
+  useEffect(() => {
+    // Verificar la sesión al cargar la página
+    if (!session && status !== 'loading') {
+      router.push('/login')
+    }
+  }, [session, status, router])
+
   const addMessage = async (newMessage: Message, file?: File) => {
     setMessages((prevMessages) => [...prevMessages, newMessage])
     setIsTyping(true)
@@ -42,7 +49,6 @@ export default function ChatPage() {
     try {
       let aiResponse: Message;
       if (file) {
-        // Simular el almacenamiento del archivo y generar una URL
         const fileUrl = URL.createObjectURL(file)
         const fileType = file.type
         setMessages((prevMessages) => [
@@ -67,7 +73,11 @@ export default function ChatPage() {
   }
 
   if (status === 'loading') {
-    return <div>Cargando...</div>
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    )
   }
 
   if (!session) {
@@ -85,3 +95,4 @@ export default function ChatPage() {
     </div>
   )
 }
+
